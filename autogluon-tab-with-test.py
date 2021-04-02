@@ -9,7 +9,7 @@ import sys
 
 from urllib.parse import urlparse
 
-os.system('pip install autogluon')
+os.system('pip install autogluon==0.0.15')
 from autogluon import TabularPrediction as task
 import pandas as pd # this should come after the pip install. 
 
