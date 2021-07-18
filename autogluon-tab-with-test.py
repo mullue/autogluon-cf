@@ -9,12 +9,12 @@ import sys
 
 from urllib.parse import urlparse
 
-os.system('pip install autogluon==0.0.15')
-from autogluon import TabularPrediction as task
+os.system('pip install autogluon')
+# from autogluon import TabularPrediction as task
+from autogluon.tabular import TabularDataset, TabularPredictor
 import pandas as pd # this should come after the pip install. 
 
 logging.basicConfig(level=logging.DEBUG)
-
 logging.info(subprocess.call('ls -lR /opt/ml/input'.split()))
 
 # ------------------------------------------------------------ #
@@ -37,9 +37,12 @@ def train(args):
   training_dir = args.train
   filename = args.filename
   logging.info(training_dir)
-  train_data = task.Dataset(file_path=training_dir + '/' + filename)
-  predictor = task.fit(train_data = train_data, label=target, output_directory=model_dir)
-  
+#   train_data = task.Dataset(file_path=training_dir + '/' + filename)
+  train_data = TabularDataset(data=training_dir + '/' + filename)
+
+#   predictor = task.fit(train_data = train_data, label=target, output_directory=model_dir)
+  predictor = TabularPredictor(label=target, path=model_dir).fit(train_data)
+          
   return predictor
     
 
@@ -47,14 +50,14 @@ def train(args):
 # Hosting methods                                              #
 # ------------------------------------------------------------ #
 
-def model_fn(model_dir):
-  """
-  Load the gluon model. Called once when hosting service starts.
-  :param: model_dir The directory where model files are stored.
-  :return: a model (in this case an AutoGluon network)
-  """
-  net = task.load(model_dir)
-  return net
+# def model_fn(model_dir):
+#   """
+#   Load the gluon model. Called once when hosting service starts.
+#   :param: model_dir The directory where model files are stored.
+#   :return: a model (in this case an AutoGluon network)
+#   """
+#   net = TabularPredictor.load(model_dir)
+#   return net
 
 
 def transform_fn(net, data, input_content_type, output_content_type):
@@ -111,7 +114,8 @@ if __name__ == '__main__':
   dataset_name = train_file.split('_')[0]
   print(dataset_name)
   
-  test_data = task.Dataset(file_path=os.path.join(training_dir, test_file))
+#   test_data = task.Dataset(file_path=os.path.join(training_dir, test_file))
+  test_data = TabularDataset(data=os.path.join(training_dir, test_file))
   u = urlparse(args.s3_output, allow_fragments=False)
   bucket = u.netloc
   print(bucket)
